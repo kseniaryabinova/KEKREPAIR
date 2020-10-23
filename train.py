@@ -1,46 +1,46 @@
 import os
 import yaml
-import argparse
 
 import torch
 from torchvision import transforms
-from torch.utils.data import DataLoader
-from torchvision.datasets import ImageFolder
-from torch.cuda.amp import GradScaler, autocast
+from torch.cuda.amp import GradScaler
 
+from dl_utils.training import train_model
+from dl_utils.training import get_data_loaders
+from dl_utils.general import parse_arguments
 from models.classifier import ApartmentRepairmentRecognizer
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Apartment repair recognizer')
-    parser.add_argument(
-        '--c',
-        '-config',
-        type=str,
-        required=True,
-        help='Path for training configuration .yaml file.'
-    )
-    args = parser.parse_args()
+    args = parse_arguments()
+
     with open(args.c, 'r') as fp:
         config = yaml.load(fp, Loader=yaml.SafeLoader)
+
+    if not os.path.exists(config['experiment_result_path']):
+        os.mkdir(config['experiment_result_path'])
+    weights_path = os.path.join(config['experiment_result_path'], 'weights')
+    if not os.path.exists(weights_path):
+        os.mkdir(weights_path)
 
     if config['mixed_precision']:
         scaler = GradScaler()
     else:
         scaler = None
 
-    T = transforms.Compose([
+    train_transforms = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor()
+    ])
+    val_transforms = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor()
     ])
 
-    dataset = ImageFolder(root=config['dataset_path'], transform=T)
-
-    dataloader = DataLoader(
-        dataset=dataset,
-        batch_size=config['batch_size'],
-        num_workers=config['dataloader_num_workers'],
-        pin_memory=True
+    train_loader, val_loader = get_data_loaders(
+        config,
+        train_transforms,
+        val_transforms
     )
 
     criterion = torch.nn.CrossEntropyLoss()
@@ -64,28 +64,16 @@ if __name__ == '__main__':
         device = torch.device('cpu')
     model = model.to(device)
     model.train()
-
-    for epoch in range(config['n_epochs']):
-        running_loss = 0.0
-        for i, batch in enumerate(dataloader):
-            images, labels = batch[0].cuda(), batch[1].cuda()
-
-            optimizer.zero_grad()
-            if scaler is not None:
-                with autocast():
-                    outputs = model(images)
-                    loss = criterion(outputs, labels)
-                scaler.scale(loss).backward()
-                scaler.step(optimizer)
-                scaler.update()
-            else:
-                outputs = model(images)
-                loss = criterion(outputs, labels)
-                loss.backward()
-                optimizer.step()
-
-            running_loss += loss.item()
-
-            if i % 5 == 4:
-                print(running_loss / 5)
-                running_loss = 0.0
+    train_model(
+        model,
+        optimizer,
+        criterion,
+        config['n_epochs'],
+        train_loader,
+        val_loader,
+        device,
+        scaler,
+        config['display_step'],
+        weights_path,
+        config['experiment_result_path']
+    )
