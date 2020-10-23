@@ -1,9 +1,11 @@
+seed: 39
 experiment_result_path: 'runs/exp1'
 val_path: '/home/neiro/FlatDataset/val'
 train_path: '/home/neiro/FlatDataset/train'
 train_batch_size: 8
+steps_per_epoch: 3
 dataloader_num_workers: 4
-learning_rate: 0.01
+learning_rate: 0.001
 weight_decay: 0.0
 n_epochs: 100
 n_gpus: 2

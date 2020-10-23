@@ -1,3 +1,4 @@
+import torch
 import argparse
 
 
@@ -12,3 +13,7 @@ def parse_arguments():
         help='Path for training configuration .yaml file.'
     )
     return parser.parse_args()
+
+
+def is_parallel(model: torch.nn.Module) -> bool:
+    return isinstance(model, torch.nn.DataParallel)

@@ -6,8 +6,8 @@ from torchvision import transforms
 from torch.cuda.amp import GradScaler
 
 from dl_utils.training import train_model
-from dl_utils.training import get_data_loaders
 from dl_utils.general import parse_arguments
+from dl_utils.training import get_data_loaders
 from models.classifier import ApartmentRepairmentRecognizer
 
 
@@ -16,6 +16,9 @@ if __name__ == '__main__':
 
     with open(args.c, 'r') as fp:
         config = yaml.load(fp, Loader=yaml.SafeLoader)
+
+    torch.manual_seed(config['seed'])
+    torch.backends.cudnn.benchmark = True
 
     if not os.path.exists(config['experiment_result_path']):
         os.mkdir(config['experiment_result_path'])
@@ -52,8 +55,16 @@ if __name__ == '__main__':
 
     optimizer = torch.optim.Adam(
         model.parameters(),
-        lr=config['learning_rate'],
+        lr=config['learning_rate'] / 3.,
         weight_decay=config['weight_decay']
+    )
+
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(
+        optimizer,
+        max_lr=config['learning_rate'],
+        total_steps=config['n_epochs'] * config['steps_per_epoch'],
+        epochs=config['n_epochs'],
+        steps_per_epoch=config['steps_per_epoch']
     )
 
     if config['use_gpu']:
@@ -67,6 +78,7 @@ if __name__ == '__main__':
     train_model(
         model,
         optimizer,
+        scheduler,
         criterion,
         config['n_epochs'],
         train_loader,

@@ -1,4 +1,6 @@
 import os
+import math
+from copy import deepcopy
 from typing import Union, Tuple, Dict
 
 import torch
@@ -10,6 +12,7 @@ from torch.utils.tensorboard import SummaryWriter
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.metrics import precision_score, recall_score
 
+from dl_utils.general import is_parallel
 
 def get_data_loaders(
         confg_file: dict,
@@ -52,6 +55,7 @@ def get_data_loaders(
 def train_model(
         model: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
+        scheduler: torch.optim.lr_scheduler.OneCycleLR,
         criterion: torch.nn.CrossEntropyLoss,
         n_epochs: int,
         train_loader: DataLoader,
@@ -81,6 +85,7 @@ def train_model(
     tb_writer = SummaryWriter(log_dir=log_path, flush_secs=10)
     step = 0
     best_f1 = 0.
+    ema = EMA(model)
     for epoch in range(n_epochs):
         running_loss = 0.0
         for batch in train_loader:
@@ -98,7 +103,8 @@ def train_model(
                 loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
-
+            ema.update(model)
+            scheduler.step()
             running_loss += loss.item()
 
             if step % display_step == display_step - 1:
@@ -107,7 +113,7 @@ def train_model(
                 tb_writer.add_scalar('Loss', running_loss/display_step, step)
                 running_loss = 0.0
             step += 1
-        metrics = eval_model(model, val_loader, device)
+        metrics = eval_model(ema.ema, val_loader, device)
         tb_writer.add_scalars(
             'Metrics',
             {
@@ -120,17 +126,17 @@ def train_model(
         )
         f1 = metrics['F1']
         print(f'[METRICS] After epoch {epoch + 1}: '
-              f'Accuracy={metrics["accuracy"]}, '
-              f'F1-score={metrics["F1"]}, '
-              f'Precision={metrics["precision"]}, '
-              f'Recall={metrics["recall"]}')
+              f'Accuracy={round(metrics["accuracy"], 3)}, '
+              f'F1-score={round(metrics["F1"], 3)}, '
+              f'Precision={round(metrics["precision"], 3)}, '
+              f'Recall={round(metrics["recall"], 3)}')
         if f1 > best_f1:
             print(f'[NEW BEST MODEL] Obtained new best model with '
-                  f'F1-score={f1}')
+                  f'F1-score={round(f1, 3)}')
             best_f1 = f1
             save_name = 'model_' + str(round(f1, 3)) + '.pth'
             save = os.path.join(save_path, save_name)
-            torch.save(model.module.state_dict(), save)
+            torch.save(ema.ema.state_dict(), save)
 
 
 def eval_model(
@@ -181,3 +187,46 @@ def eval_model(
         'accuracy': accuracy,
         'precision': precision,
     }
+
+
+class EMA:
+    """
+    https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
+    """
+    def __init__(
+            self,
+            model: torch.nn.Module,
+            decay: float = 0.9999,
+            updates: int = 0
+    ) -> None:
+        """
+        :param model: Model for averaging;
+        :param decay: Decay coefficient;
+        :param updates: Counter of EMA updates.
+        """
+        self.ema = deepcopy(
+            model.module if is_parallel(model) else model
+        ).eval()
+        self.updates = updates
+        self.decay = lambda x: decay * (1 - math.exp(-x / 2000))
+        for p in self.ema.parameters():
+            p.requires_grad_(False)
+
+    def update(self, model: torch.nn.Module) -> None:
+        """
+        Update model weights according to exponential
+        moving average rule.
+
+        :param model: Model which weights should be updated.
+        """
+        with torch.no_grad():
+            self.updates += 1
+            d = self.decay(self.updates)
+            if is_parallel(model):
+                msd = model.module.state_dict()
+            else:
+                model.state_dict()
+            for k, v in self.ema.state_dict().items():
+                if v.dtype.is_floating_point:
+                    v *= d
+                    v += (1. - d) * msd[k].detach()
