@@ -6,8 +6,9 @@ import torch
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
+from torch.cuda.amp import GradScaler, autocast
 
-from models.classifier import ApartmentRepairRecognizer
+from models.classifier import ApartmentRepairmentRecognizer
 
 
 if __name__ == '__main__':
@@ -22,6 +23,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with open(args.c, 'r') as fp:
         config = yaml.load(fp, Loader=yaml.SafeLoader)
+
+    if config['mixed_precision']:
+        scaler = GradScaler()
+    else:
+        scaler = None
 
     T = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -39,14 +45,25 @@ if __name__ == '__main__':
 
     criterion = torch.nn.CrossEntropyLoss()
 
-    model = ApartmentRepairRecognizer(True)
+    model = ApartmentRepairmentRecognizer(
+        pretrained_backbone=True,
+        mixed_precision=config['mixed_precision']
+    )
 
     optimizer = torch.optim.Adam(
         model.parameters(),
         lr=config['learning_rate'],
         weight_decay=config['weight_decay']
     )
-    model = model.cuda()
+
+    if config['use_gpu']:
+        device = torch.device('cuda:0')
+        if config['n_gpus'] > 1:
+            model = torch.nn.DataParallel(model)
+    else:
+        device = torch.device('cpu')
+    model = model.to(device)
+    model.train()
 
     for epoch in range(config['n_epochs']):
         running_loss = 0.0
@@ -54,10 +71,18 @@ if __name__ == '__main__':
             images, labels = batch[0].cuda(), batch[1].cuda()
 
             optimizer.zero_grad()
-            outputs = model(images)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+            if scaler is not None:
+                with autocast():
+                    outputs = model(images)
+                    loss = criterion(outputs, labels)
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                outputs = model(images)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
 
             running_loss += loss.item()
 

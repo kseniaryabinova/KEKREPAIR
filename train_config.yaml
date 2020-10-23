@@ -1,6 +1,10 @@
 dataset_path: '/home/neiro/FlatDataset'
+experiment_result_path: 'runs/exp1'
 batch_size: 8
 dataloader_num_workers: 4
 learning_rate: 0.01
 weight_decay: 0.0
 n_epochs: 100
+n_gpus: 2
+use_gpu: true
+mixed_precision: true
