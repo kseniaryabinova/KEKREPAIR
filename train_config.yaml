@@ -1,15 +1,31 @@
-seed: 39
-experiment_result_path: 'runs/exp1'
-val_path: '/home/neiro/FlatDataset/val'
-train_path: '/home/neiro/FlatDataset/train'
-train_batch_size: 8
-steps_per_epoch: 3
-dataloader_num_workers: 4
+# Path settings.
+experiment_result_path: 'runs/exp10'           # Path for experiment results.
+val_path: '/home/neiro/FlatDataset/val'        # Path to validation set.
+train_path: '/home/neiro/FlatDataset/train'    # Path to train set.
+
+
+# Training settings.
+seed: 39                         # For consistent experiments.
+n_gpus: 2                        # Number of GPUs for training.
+use_gpu: true                    # Whether to use GPU or not.
+n_epochs: 100                    # Number of epochs for training.
+display_step: 4                  # Step factor for logging frequency.
+steps_per_epoch: 4               # How many steps take one epoch.
+val_batch_size: 16               # Batch size for validation procedure.
 learning_rate: 0.001
-weight_decay: 0.0005
-n_epochs: 100
-n_gpus: 2
-use_gpu: true
-mixed_precision: true
-display_step: 2
-val_batch_size: 16
+weight_decay: 0.0000             # For L2-regularization.
+train_batch_size: 768            # Batch size for training procedure.
+mixed_precision: true            # Whether to use AMP training or not.
+dataloader_num_workers: 4        # Parallelization parameter for loading data.
+
+# Next two settings controls behaviour of cost-sensitive learning.
+unique_classes:                  # Just enumeration of class indices.
+  - 0
+  - 1
+  - 2
+  - 3
+n_samples_per_class:             # Number of samples in each class. So:
+  - 50                           # Number of samples in class 0;
+  - 1006                         # Number of samples in class 1;
+  - 799                          # Number of samples in class 2;
+  - 797                          # Number of samples in class 3.

@@ -1,7 +1,7 @@
 import os
 import math
 from copy import deepcopy
-from typing import Union, Tuple, Dict
+from typing import Union, Tuple, Dict, List
 
 import torch
 from torchvision import transforms
@@ -11,8 +11,36 @@ from torch.cuda.amp import GradScaler, autocast
 from torch.utils.tensorboard import SummaryWriter
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.metrics import precision_score, recall_score
+from sklearn.utils.class_weight import compute_class_weight
 
 from dl_utils.general import is_parallel
+
+
+def compute_class_weights(
+        unique_classes: List[int],
+        n_samples_per_class: List[int],
+        device: torch.device
+) -> torch.Tensor:
+    """
+    Compute class weights for cost-sensitive learning.
+
+    :param unique_classes: List with unique class indices;
+    :param n_samples_per_class: List with number of samples
+            per class;
+    :param device: Torch device type.
+
+    :return Tensor with class weights.
+    """
+    class_labels = []
+    for i, n_samples in enumerate(n_samples_per_class):
+        class_labels.extend([i for _ in range(n_samples)])
+    class_weights = compute_class_weight(
+        'balanced',
+        classes=unique_classes,
+        y=class_labels
+    )
+    return torch.from_numpy(class_weights).to(device).float()
+
 
 def get_data_loaders(
         confg_file: dict,
@@ -69,7 +97,8 @@ def train_model(
     """
     Training loop.
 
-    :param model: Model for training.
+    :param scheduler: Learning rate scheduler;
+    :param model: Model for training;
     :param optimizer: Model optimizer. Could be any
             subclass of torch.optim.Optimizer class;
     :param criterion: Cross-entropy loss function;
@@ -104,7 +133,8 @@ def train_model(
                 loss.backward()
                 optimizer.step()
             ema.update(model)
-            scheduler.step()
+            if scheduler:
+                scheduler.step()
             running_loss += loss.item()
 
             if step % display_step == display_step - 1:

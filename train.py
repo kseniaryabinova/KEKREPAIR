@@ -8,6 +8,7 @@ from torch.cuda.amp import GradScaler
 from dl_utils.training import train_model
 from dl_utils.general import parse_arguments
 from dl_utils.training import get_data_loaders
+from dl_utils.training import compute_class_weights
 from models.classifier import ApartmentRepairmentRecognizer
 
 
@@ -34,10 +35,6 @@ if __name__ == '__main__':
     train_transforms = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.RandomHorizontalFlip(),
-        transforms.RandomAffine(
-            degrees=5,
-            translate=(0.1, 0.1)
-        ),
         transforms.ToTensor()
     ])
     val_transforms = transforms.Compose([
@@ -50,8 +47,6 @@ if __name__ == '__main__':
         train_transforms,
         val_transforms
     )
-
-    criterion = torch.nn.CrossEntropyLoss()
 
     model = ApartmentRepairmentRecognizer(
         pretrained_backbone=True,
@@ -78,6 +73,14 @@ if __name__ == '__main__':
             model = torch.nn.DataParallel(model)
     else:
         device = torch.device('cpu')
+
+    class_weights = compute_class_weights(
+        config['unique_classes'],
+        config['n_samples_per_class'],
+        device
+    )
+    criterion = torch.nn.CrossEntropyLoss(weight=class_weights)
+
     model = model.to(device)
     model.train()
     train_model(
