@@ -57,6 +57,7 @@
   <table class="table text-center">
     <thead class="thead-light">
       <tr>
+          <th style="color:#401500"><h3>Вероятности</h3></th>
           <th style="color:#401500"><h3>Фото</h3></th>
           <th style="color:#401500"><h3>Тип ремонта</h3></th>
       </tr>
@@ -64,6 +65,11 @@
     <tbody>
       {% for file_data in files_data %}
       <tr>
+        <td class="align-middle">
+            <h6>{{ file_data.top_3_labels_list[0][0] }}: {{ file_data.top_3_labels_list[0][1] }}%</h6>
+            <h6>{{ file_data.top_3_labels_list[1][0] }}: {{ file_data.top_3_labels_list[1][1] }}%</h6>
+            <h6>{{ file_data.top_3_labels_list[2][0] }}: {{ file_data.top_3_labels_list[2][1] }}%</h6>
+        </td>
           <td class="w-80">
 			      <img src="{{ url_for('static', filename=file_data.filepath) }}"
                        class="img-fluid img-thumbnail" alt="{{ file_data.filename }}">
