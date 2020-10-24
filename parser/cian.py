@@ -4,15 +4,9 @@
 # Импорт библиотек
 import os
 import time
-import re
-import sqlite3
-import pandas as pd
-
 import bs4
 from bs4 import BeautifulSoup
 import requests
-from urllib.request import urlopen
-import IPython
 
 
 # Обработка
