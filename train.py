@@ -33,6 +33,11 @@ if __name__ == '__main__':
 
     train_transforms = transforms.Compose([
         transforms.Resize((224, 224)),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomAffine(
+            degrees=5,
+            translate=(0.1, 0.1)
+        ),
         transforms.ToTensor()
     ])
     val_transforms = transforms.Compose([
