@@ -2,6 +2,7 @@ import os
 import yaml
 
 import torch
+from torch_optimizer import RAdam
 from torchvision import transforms
 from torch.cuda.amp import GradScaler
 
@@ -54,7 +55,7 @@ if __name__ == '__main__':
         mixed_precision=config['mixed_precision']
     )
 
-    optimizer = torch.optim.Adam(
+    optimizer = RAdam(
         model.parameters(),
         lr=config['learning_rate'] / 3.,
         weight_decay=config['weight_decay']

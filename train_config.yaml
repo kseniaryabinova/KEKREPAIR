@@ -1,5 +1,5 @@
 # Path settings.
-experiment_result_path: 'runs/exp11'           # Path for experiment results.
+experiment_result_path: 'runs/exp12'           # Path for experiment results.
 val_path: '/home/neiro/FlatDataset/val'        # Path to validation set.
 train_path: '/home/neiro/FlatDataset/train'    # Path to train set.
 

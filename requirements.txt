@@ -3,3 +3,4 @@ torch==1.6.0
 torchvision==0.7.0
 PyYAML~=5.3.1
 scikit-learn~=0.23.2
+torch-optimizer==0.0.1a16
