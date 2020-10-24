@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+
+
+<br>
+<br>
+<br>
+<br>
+<h1 class="text-center" >Оцените ваш ремонт без регистрации и СМС</h1>
+<br>
+<br>
+
+  <form method="post" action="/" enctype=multipart/form-data >
+      <div class="form-group">
+          <div class="custom-file">
+
+              <input type="file" class="custom-file-input" name="image" multiple="" id="image" >
+            <label class="custom-file-label" for="image">Выбрать картинки...</label>
+
+              <script>
+                  $('#image').on('change', function() {
+                      if ($(this)[0].files){
+                        let files_amount = $(this)[0].files.length;
+                        if (files_amount % 10 === 1){
+                            $(this).next('.custom-file-label').html('Выбран ' + files_amount + ' файл');
+                        } else if (files_amount % 10 === 2 || files_amount % 10 === 3 || files_amount % 10 === 4){
+                            $(this).next('.custom-file-label').html('Выбрано ' + files_amount + ' файла');
+                        } else {
+                            $(this).next('.custom-file-label').html('Выбрано ' + files_amount + ' файлов');
+                        }
+                      }
+                });
+              </script>
+
+          </div>
+        </div>
+      <br>
+      <div class="col-md-12 text-center">
+      <button type="submit" style="background:#3366CC" class="btn btn-primary">Мистер робот, оцени мой ремонт!</button>
+      </div>
+  </form>
+
+
+<style>
+.table .thead-light th {
+  color: #3366CC;
+}
+</style>
+
+
+<br><br><br>
+<br><br><br>
+  {% if files_data|length > 0 %}
+  <table class="table text-center">
+    <thead class="thead-light">
+      <tr>
+          <th style="color:#401500"><h3>Фото</h3></th>
+          <th style="color:#401500"><h3>Тип ремонта</h3></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for file_data in files_data %}
+      <tr>
+          <td class="w-80">
+			      <img src="{{ url_for('static', filename=file_data.filepath) }}"
+                       class="img-fluid img-thumbnail" alt="{{ file_data.filename }}">
+            </td>
+        <td class="align-middle"><h4>{{ file_data.label_name }}</h4></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+</div>
+
+{% endblock content %}
