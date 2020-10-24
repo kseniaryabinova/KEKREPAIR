@@ -1,4 +1,8 @@
 import os
+import cv2
+import numpy as np
+
+from multiprocessing.managers import BaseManager
 
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 
@@ -9,9 +13,13 @@ UPLOAD_FOLDER = 'static/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+BaseManager.register('predict')
+manager = BaseManager(address=('192.168.6.220', 1448), authkey=b'ksenia')
+manager.connect()
+
 
 
 class FilesData:
@@ -29,7 +37,7 @@ class FilesData:
             return 'Евроремонт, все как у людей'
         elif label == 3:
             return 'Золотой унитаз edition'
-        return 'Обои в цветочек'
+        return '-1'
 
 
 def allowed_file(filename):
@@ -65,7 +73,10 @@ def index():
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-                files_data.append(FilesData(file.filename, -1))
+                frame = cv2.imread(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                label_id = manager.predict(frame)._getvalue()
+
+                files_data.append(FilesData(file.filename, label_id))
 
     return render_template('index.html', files_data=files_data)
 
