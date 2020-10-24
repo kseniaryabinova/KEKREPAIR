@@ -21,7 +21,6 @@ manager = BaseManager(address=('192.168.6.220', 1448), authkey=b'ksenia')
 manager.connect()
 
 
-
 class FilesData:
     def __init__(self, filename, label_id):
         self.filename = filename
@@ -33,10 +32,12 @@ class FilesData:
             return 'Голые стены'
         elif label == 1:
             return 'Обои в цветочек'
-        elif label == 2:
-            return 'Евроремонт, все как у людей'
         elif label == 3:
+            return 'Евроремонт, все как у людей'
+        elif label == 2:
             return 'Золотой унитаз edition'
+        elif label == 4:
+            return 'Здесь что угодно, но не ремонт'
         return '-1'
 
 

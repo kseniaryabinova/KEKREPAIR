@@ -1,0 +1,11 @@
+# h/main.py: 8
+numpy == 1.18.4
+
+# h/main.py: 7
+opencv_python_headless == 4.1.1.26
+
+# h/main.py: 3,4
+torch == 1.5.0
+
+# h/main.py: 5
+torchvision == 0.6.0
