@@ -49,6 +49,7 @@ if __name__ == '__main__':
     )
 
     model = ApartmentRepairmentRecognizer(
+        config['n_classes'],
         pretrained_backbone=True,
         mixed_precision=config['mixed_precision']
     )

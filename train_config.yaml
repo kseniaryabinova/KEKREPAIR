@@ -1,5 +1,5 @@
 # Path settings.
-experiment_result_path: 'runs/exp10'           # Path for experiment results.
+experiment_result_path: 'runs/exp11'           # Path for experiment results.
 val_path: '/home/neiro/FlatDataset/val'        # Path to validation set.
 train_path: '/home/neiro/FlatDataset/train'    # Path to train set.
 
@@ -7,6 +7,7 @@ train_path: '/home/neiro/FlatDataset/train'    # Path to train set.
 # Training settings.
 seed: 39                         # For consistent experiments.
 n_gpus: 2                        # Number of GPUs for training.
+n_classes: 5                     # Number of training classes.
 use_gpu: true                    # Whether to use GPU or not.
 n_epochs: 100                    # Number of epochs for training.
 display_step: 4                  # Step factor for logging frequency.
@@ -24,8 +25,10 @@ unique_classes:                  # Just enumeration of class indices.
   - 1
   - 2
   - 3
+  - 4
 n_samples_per_class:             # Number of samples in each class. So:
   - 50                           # Number of samples in class 0;
   - 1006                         # Number of samples in class 1;
   - 799                          # Number of samples in class 2;
-  - 797                          # Number of samples in class 3.
+  - 797                          # Number of samples in class 3;
+  - 70                           # Number of samples in class 4.
