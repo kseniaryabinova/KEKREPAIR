@@ -1,7 +1,8 @@
 # Вебсервис
 
 Сначала запускается Remote manager, потом вебсервис.
-Машины с Remote manager и вебсервисом должны пинговаться между собой (например, они могут связаны с помощью VPN)
+Машины с Remote manager и вебсервисом должны пинговаться между собой 
+(например, они могут быть связаны с помощью VPN)
 
 ## Запуск Remote manager
 
@@ -18,13 +19,13 @@ manager = BaseManager(address=('0.0.0.0', <port>),
 Веса нейронной сети расположены на [Яндекс диске](https://yadi.sk/d/W60C2mkM3u-1Kw)
 
 ```python
-path = 'model_0.665.pth'
+path = 'model_0.677.pth'
 ```
 
 Запуск
 
 ```bash
-pip3 install -r remote_manager_requirements.txt.txt
+pip3 install -r remote_manager_requirements.txt
 python3 remote_manager.py
 ```
 
