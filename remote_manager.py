@@ -31,9 +31,10 @@ model = ApartmentRepairmentRecognizer(
         pretrained_backbone=True,
         mixed_precision=False)
 
-path = 'model_0.619.pth'
+path = 'model_0.677.pth'
 
 model.load_state_dict(torch.load(path))
+model.eval()
 model.to(device)
 
 
@@ -51,10 +52,12 @@ def predict(frame):
     print(prep_frame.shape)
     predictions = model(prep_frame.to(device, dtype=torch.float))
     print(predictions.cpu())
-    predictions =  torch.squeeze(predictions.cpu())
+    predictions = torch.squeeze(predictions.cpu()).detach().numpy()
+    predictions = np.exp(predictions)/np.sum(np.exp(predictions))
+    print(predictions)
 
-    label_id = torch.argmax(predictions.detach())
-    return label_id.item()
+#    label_id = torch.argmax(predictions.detach())
+    return predictions
 
 
 BaseManager.register('predict', callable=predict)
