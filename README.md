@@ -30,3 +30,7 @@
 | exp10 | 0.001 | Adam, wd=5e-4 | OneCycleLR | 768 | RGB         | \- Resize((224, 224));<br>\- RandomHorizontalFlip(p=0.5).                                                      | None      | \- Cost-sensitive loss;<br>\- EMA. | 0.545   |
 | exp11 | 0.001 | Adam          | OneCycleLR | 768 | RGB         | \- Resize((224, 224));<br>\- RandomHorizontalFlip(p=0.5).                                                      | None      | \- Cost-sensitive loss;<br>\- EMA. | 0.61    |
 | exp12 | 0.001 | RAdam          | OneCycleLR | 768 | RGB         | \- Resize((224, 224));<br>\- RandomHorizontalFlip(p=0.5).                                                      | None      | \- Cost-sensitive loss;<br>\- EMA. | 0.619    |
+| exp13 | 0.001 | Ranger          | OneCycleLR | 768 | RGB         | \- Resize((224, 224));<br>\- RandomHorizontalFlip(p=0.5).                                                      | None      | \- Cost-sensitive loss;<br>\- EMA. | 0.627    |
+| exp14 | 0.001 | Ranger, Clean dataset| OneCycleLR | 768 | RGB         | \- Resize((224, 224));<br>\- RandomHorizontalFlip(p=0.5).                                                      | None      | \- Cost-sensitive loss;<br>\- EMA. | 0.657|
+| exp15 | 0.001 | Ranger, Clean dataset| OneCycleLR | 768 | RGB         | \- Resize((224, 224));<br>\- RandomHorizontalFlip(p=0.5);<br>\- ColorJitter(0.1, 0.1, 0.1, 0.1);                                                      | None      | \- Cost-sensitive loss;<br>\- EMA. | 0.677|
+

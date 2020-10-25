@@ -1,5 +1,5 @@
 # Path settings.
-experiment_result_path: 'runs/exp12'           # Path for experiment results.
+experiment_result_path: 'runs/exp17'           # Path for experiment results.
 val_path: '/home/neiro/FlatDataset/val'        # Path to validation set.
 train_path: '/home/neiro/FlatDataset/train'    # Path to train set.
 
@@ -27,8 +27,8 @@ unique_classes:                  # Just enumeration of class indices.
   - 3
   - 4
 n_samples_per_class:             # Number of samples in each class. So:
-  - 50                           # Number of samples in class 0;
-  - 1006                         # Number of samples in class 1;
-  - 799                          # Number of samples in class 2;
-  - 797                          # Number of samples in class 3;
-  - 70                           # Number of samples in class 4.
+  - 55                           # Number of samples in class 0;
+  - 846                          # Number of samples in class 1;
+  - 772                          # Number of samples in class 2;
+  - 801                          # Number of samples in class 3;
+  - 154                          # Number of samples in class 4.

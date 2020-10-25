@@ -135,12 +135,18 @@ def train_model(
             ema.update(model)
             if scheduler:
                 scheduler.step()
+                lr = scheduler.get_last_lr()
+                tb_writer.add_scalar('Meta/Learning rate', *lr, step)
             running_loss += loss.item()
 
             if step % display_step == display_step - 1:
                 print(f'[INFO] Epoch {epoch + 1}, Iteration {step + 1} '
                       f'Loss={running_loss / display_step}')
-                tb_writer.add_scalar('Loss', running_loss/display_step, step)
+                tb_writer.add_scalar(
+                    'Loss/Train',
+                    running_loss/display_step,
+                    step
+                )
                 running_loss = 0.0
             step += 1
         metrics = eval_model(ema.ema, val_loader, device)
@@ -154,8 +160,14 @@ def train_model(
             },
             epoch
         )
+        tb_writer.add_scalar(
+            'Loss/Validation',
+            metrics['loss'],
+            global_step=epoch
+        )
         f1 = metrics['F1']
         print(f'[METRICS] After epoch {epoch + 1}: '
+              f'Validation loss={round(metrics["loss"], 3)} '
               f'Accuracy={round(metrics["accuracy"], 3)}, '
               f'F1-score={round(metrics["F1"], 3)}, '
               f'Precision={round(metrics["precision"], 3)}, '
@@ -188,15 +200,21 @@ def eval_model(
     predicted = []
     ground_truth = []
 
+    m = 0
+    total_loss = 0.
+    criterion = torch.nn.CrossEntropyLoss()
     with torch.no_grad():
         for batch in val_loader:
             images, labels = batch[0].to(device), batch[1].to(device)
             predictions = model(images)
+            batch_loss = criterion(predictions, labels)
+            total_loss += batch_loss.item()
+            m += 1
             _, predictions = torch.max(predictions, dim=1)
             ground_truth.extend(labels.detach().cpu().numpy())
             predicted.extend(predictions.detach().cpu().numpy())
     model.train()
-
+    log_loss = total_loss / m
     accuracy = accuracy_score(ground_truth, predicted)
     f1 = f1_score(ground_truth, predicted, average='macro', zero_division=0)
     precision = precision_score(
@@ -216,6 +234,7 @@ def eval_model(
         'recall': recall,
         'accuracy': accuracy,
         'precision': precision,
+        'loss': log_loss
     }
 
 

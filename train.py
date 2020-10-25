@@ -2,7 +2,7 @@ import os
 import yaml
 
 import torch
-from torch_optimizer import RAdam
+from torch_optimizer import Ranger
 from torchvision import transforms
 from torch.cuda.amp import GradScaler
 
@@ -35,6 +35,7 @@ if __name__ == '__main__':
 
     train_transforms = transforms.Compose([
         transforms.Resize((224, 224)),
+        transforms.ColorJitter(0.1, 0.1, 0.1, 0.1),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor()
     ])
@@ -55,19 +56,20 @@ if __name__ == '__main__':
         mixed_precision=config['mixed_precision']
     )
 
-    optimizer = RAdam(
+    optimizer = Ranger(
         model.parameters(),
         lr=config['learning_rate'] / 3.,
         weight_decay=config['weight_decay']
     )
 
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(
-        optimizer,
-        max_lr=config['learning_rate'],
-        total_steps=config['n_epochs'] * config['steps_per_epoch'],
-        epochs=config['n_epochs'],
-        steps_per_epoch=config['steps_per_epoch']
-    )
+    scheduler = None
+    # scheduler = torch.optim.lr_scheduler.OneCycleLR(
+    #     optimizer,
+    #     max_lr=config['learning_rate'],
+    #     total_steps=config['n_epochs'] * config['steps_per_epoch'],
+    #     epochs=config['n_epochs'],
+    #     steps_per_epoch=config['steps_per_epoch']
+    # )
 
     if config['use_gpu']:
         device = torch.device('cuda:0')
